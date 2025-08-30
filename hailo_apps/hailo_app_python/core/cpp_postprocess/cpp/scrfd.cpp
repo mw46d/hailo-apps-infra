@@ -304,18 +304,36 @@ std::tuple<xt::xarray<float>, xt::xarray<float>, xt::xarray<float>> detect_decod
     // Filter and dequantize boxes
     xt::xarray<uint8_t> high_boxes_quant = xt::view(boxes_quant, xt::keep(threshold_indices), xt::all());
     auto high_boxes_dequant = common::dequantize(high_boxes_quant,
+#if defined(TAPPAS_VERSION) && TAPPAS_VERSION >= 50000
+                                                tensors[BOXES[i]]->quant_info().qp_scale,
+                                                tensors[BOXES[i]]->quant_info().qp_zp
+#else
                                                 tensors[BOXES[i]]->vstream_info().quant_info.qp_scale,
-                                                tensors[BOXES[i]]->vstream_info().quant_info.qp_zp);
+                                                tensors[BOXES[i]]->vstream_info().quant_info.qp_zp
+#endif
+                                                );
     // Filter and dequantize scores
     xt::xarray<uint8_t> high_scores_quant = xt::view(scores_quant, xt::keep(threshold_indices));
     auto high_scores_dequant = common::dequantize(high_scores_quant,
+#if defined(TAPPAS_VERSION) && TAPPAS_VERSION >= 50000
+                                                tensors[CLASSES[i]]->quant_info().qp_scale,
+                                                tensors[CLASSES[i]]->quant_info().qp_zp
+#else
                                                 tensors[CLASSES[i]]->vstream_info().quant_info.qp_scale,
-                                                tensors[CLASSES[i]]->vstream_info().quant_info.qp_zp);
+                                                tensors[CLASSES[i]]->vstream_info().quant_info.qp_zp
+#endif
+                                                );
     // Filter and dequantize landmarks
     xt::xarray<uint8_t> high_landmarks_quant = xt::view(landmarks_quant, xt::keep(threshold_indices), xt::all());
     auto high_landmarks_dequant = common::dequantize(high_landmarks_quant,
+#if defined(TAPPAS_VERSION) && TAPPAS_VERSION >= 50000
+                                                    tensors[LANDMARKS[i]]->quant_info().qp_scale,
+                                                    tensors[LANDMARKS[i]]->quant_info().qp_zp
+#else
                                                     tensors[LANDMARKS[i]]->vstream_info().quant_info.qp_scale,
-                                                    tensors[LANDMARKS[i]]->vstream_info().quant_info.qp_zp);
+                                                    tensors[LANDMARKS[i]]->vstream_info().quant_info.qp_zp
+#endif
+                                                    );
     // Filter anchors and use them to decode boxes/landmarks
     auto stepped_inds = threshold_indices + steps;
     auto high_anchors = xt::view(anchors, xt::keep(stepped_inds), xt::all());
